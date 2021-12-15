@@ -1,5 +1,5 @@
 ---
-title: "Mini-Project 01"
+title: "Mini-Project 01 Kyle Dean"
 output: 
   html_document:
     keep_md: true
@@ -10,3 +10,112 @@ output:
 # Data Visualization Project 01
 
 _revised version of mini-project 01 goes here_
+
+By Kyle Dean
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+fuel <- read_csv("https://raw.githubusercontent.com/reisanar/datasets/master/fuel.csv")
+fuel
+```
+
+```{r}
+fuelMake <- fuel %>%
+  count(make)
+```
+
+
+```{r}
+fuelMake1 <- fuelMake[c(1:round(nrow(fuelMake)/3),digits = 0),]
+fuelMake2 <- fuelMake[c((round(nrow(fuelMake)/3)+1):floor(nrow(fuelMake)*2/3)),]
+fuelMake3 <- fuelMake[c((floor(nrow(fuelMake)*2/3)+1):nrow(fuelMake)),]
+```
+
+```{r}
+ggplot(fuelMake1, aes(x = make, y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme(legend.position = "none") +
+  labs(x = "Maker of car", y = "Count")
+```
+```{r}
+ggplot(fuelMake2, aes(x = make, y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme(legend.position = "none") +
+  labs(x = "Maker of car", y = "Count")
+```
+```{r}
+ggplot(fuelMake3, aes(x = make, y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme(legend.position = "none") +
+  labs(x = "Maker of car", y = "Count")
+```
+Made a clearner version of the columns
+
+```{r}
+fuelAnnual <- fuel %>%
+  count(annual_fuel_cost_ft1)
+```
+```{r}
+fuelAnnual$PriceBracket <- c(1:60)
+```
+```{r}
+fuelAnnual$CostCount <- c(1:60)
+```
+
+```{r}
+CostVec <- c(1:60)
+for(i in 1:60){
+  CostVec[i] <- fuelAnnual$annual_fuel_cost_ft1[i] * fuelAnnual$n[i]
+}
+CostVec
+```
+```{r}
+fuelAnnual$CostCount <- CostVec
+```
+```{r}
+fuelAnnual
+```
+
+
+```{r}
+Vec <- c(1:60)
+for(i in 1:nrow(fuelAnnual)){
+  if(fuelAnnual$CostCount[i] < (sum((fuelAnnual$CostCount))/60)){
+    Vec <- replace(Vec, i, "Below Average")
+  }
+  if(fuelAnnual$CostCount[i] >= (mean((fuelAnnual$CostCount))/60)){
+    Vec <- replace(Vec, i, "Above Average")
+  }
+}
+Vec
+```
+```{r}
+fuelAnnual$PriceBracket <- Vec
+```
+
+```{r}
+max(fuelAnnual$CostCount)
+```
+
+```{r}
+ggplot(fuelAnnual, aes(x = annual_fuel_cost_ft1, y = n, color = CostCount)) + 
+  geom_point(size = 3) +
+  facet_wrap(~ PriceBracket) +
+  scale_color_gradientn(colours = hcl.colors(25)) +
+  theme(legend.position = "none") +
+  labs(y = "", x = "")
+```
+Got a much better color for the map, made the points bigger, and removed the ugly legend
+
+
+
+
