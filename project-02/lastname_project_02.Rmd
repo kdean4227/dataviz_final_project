@@ -1,5 +1,5 @@
 ---
-title: "Mini-Project 02"
+title: "Mini-Project 02 Kyle Dean"
 output: 
   html_document:
     keep_md: true
@@ -10,3 +10,82 @@ output:
 # Data Visualization Project 02
 
 _revised version of mini-project 02 goes here_
+
+By Kyle Dean
+
+```{r}
+library(tidyverse)
+library(gapminder)
+library(plotly)
+library(sf)
+```
+
+```{r}
+Billboard <- read_csv("https://raw.githubusercontent.com/reisanar/datasets/master/all_billboard_summer_hits.csv")
+```
+
+```{r}
+Bill2001 <- filter(Billboard, playlist_name == "summer_hits_2001")
+```
+```{r}
+Bill2001Plot <- ggplot(
+  data = Bill2001,
+  mapping = aes(x = danceability, y = loudness, 
+                color = mode)) +
+  geom_point(aes(text = key_mode), size = 5) +
+  scale_x_log10() +
+  theme_minimal()
+
+
+ggplotly(Bill2001Plot)
+```
+```{r}
+interactive_plot <- ggplotly(
+  Bill2001Plot, tooltip = "text"
+) 
+interactive_plot
+```
+```{r}
+htmlwidgets::saveWidget(interactive_plot, "fancy_plot.html")
+```
+
+
+```{r}
+Billboard_cor <- Billboard %>% 
+  select(danceability, energy, speechiness, acousticness, instrumentalness) %>% 
+  cor()
+# only consider upper triangular part of
+# correlation matrix
+Billboard_cor[lower.tri(Billboard_cor)] <- NA
+# format the matrix of correlation
+Billboard_cor_long <- Billboard_cor %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Variable2") %>% 
+  pivot_longer(cols = -Variable2,
+               names_to = "Variable1",
+               values_to = "cor") %>% 
+  mutate(nice_cor = round(cor, 2)) %>% 
+  mutate(Variable1 = fct_inorder(Variable1),
+         Variable2 = fct_inorder(Variable2)) %>% 
+  filter(!is.na(cor)) %>% 
+  filter(Variable2 != Variable1)
+```
+
+```{r}
+ggplot(Billboard_cor_long, 
+       aes(x = Variable2, 
+           y = Variable1, 
+           fill = cor)) +
+  geom_tile() +
+  geom_text(aes(label = nice_cor)) +
+  scale_fill_gradient2(
+    low = "#F63719", 
+    mid = "white", 
+    high = "#3B9AB2", 
+    limits = c(-1, 1)
+    ) +
+  labs(x = NULL, y = NULL) +
+  coord_equal() +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), legend.position = "none")
+```
